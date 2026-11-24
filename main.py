@@ -71,6 +71,20 @@ def validate_line(value) -> str:
     return value
 
 
+def verify_entry_file(path, expected) -> None:
+    """Read-back validation: re-read the written entry file and
+    confirm it holds exactly the intended line -- same text, same
+    length, one line, no trailing newline. Raises AssertionError on
+    any mismatch, so a truncated or altered write can never pass
+    silently.
+    """
+    with open(path, "rb") as f:
+        data = f.read()
+    assert validate_line(data) == expected, (
+        f"read-back mismatch: file holds {data!r}, expected {expected!r}"
+    )
+
+
 def main() -> None:
     # Pre-write guard: refuse to write anything that is not one
     # non-blank line of 1-200 characters.
@@ -82,9 +96,7 @@ def main() -> None:
         f.write(LINE)
     # Read-back validation: the file must hold exactly the line we
     # intended to write -- same text, same length, one line.
-    with open(path, "rb") as f:
-        data = f.read()
-    assert validate_line(data) == LINE
+    verify_entry_file(path, LINE)
     print(LINE)
 
 
